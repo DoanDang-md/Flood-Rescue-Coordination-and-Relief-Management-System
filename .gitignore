@@ -1,0 +1,9 @@
+# Bỏ qua file cấu hình máy tính cá nhân
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Bỏ qua file cấu hình DB cá nhân (Tùy chọn)
+# (Nếu mỗi bạn dùng mật khẩu MySQL khác nhau, hãy bỏ comment dòng dưới và tạo 1 file config_template.php để share chung)
+# api/config.php
