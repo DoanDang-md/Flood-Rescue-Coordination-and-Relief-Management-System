@@ -4,8 +4,7 @@ session_start();
 
 // Gọi file kết nối Cơ sở dữ liệu
 require_once 'config.php';
-$hash_chuan_xac = password_hash('123456', PASSWORD_DEFAULT);
-$pdo->exec("UPDATE users SET password_hash = '$hash_chuan_xac' WHERE username = 'admin'");
+
 
 // Kiểm tra xem dữ liệu có được gửi từ Form POST không
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

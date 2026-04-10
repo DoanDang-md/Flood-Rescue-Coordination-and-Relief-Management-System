@@ -26,3 +26,28 @@
     border-bottom-right-radius: 0.3rem;
   }
 }
+@media (min-width: 768px) {
+  /* 1. Ghim chặt Sidebar bên trái */
+  #accordionSidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh !important;
+    z-index: 1030;
+    width: 14rem !important; /* Độ rộng mặc định của SB Admin */
+    overflow-y: auto; /* Hiện thanh cuộn nếu menu quá dài */
+  }
+
+  /* 2. Đẩy phần nội dung sang phải một khoảng bằng đúng độ rộng Sidebar */
+  #content-wrapper {
+    margin-left: 14rem;
+    width: calc(100% - 14rem);
+  }
+
+  /* 3. Ghim thanh Topbar (thanh ngang trên cùng) */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+  }
+}
