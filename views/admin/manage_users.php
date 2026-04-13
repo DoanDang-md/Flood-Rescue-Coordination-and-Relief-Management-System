@@ -1,27 +1,22 @@
 <?php
 session_start();
-// Khóa bảo vệ: Chỉ Admin mới được vào
 if (!isset($_SESSION['role_name']) || $_SESSION['role_name'] !== 'Admin') {
-    header("Location: ../../index.html"); 
-    exit;
+    header("Location: ../../index.html"); exit;
 }
-
 require_once '../../api/config.php';
 
-// 1. Lấy danh sách Người dùng để hiển thị ra Bảng
 try {
+    // Thêm u.role_id vào câu lệnh SELECT
     $stmtUsers = $pdo->query("
-        SELECT u.user_id, u.username, u.full_name, u.phone, r.role_name
+        SELECT u.user_id, u.username, u.full_name, u.phone, u.role_id, r.role_name
         FROM users u
         JOIN roles r ON u.role_id = r.role_id
         ORDER BY u.user_id DESC
     ");
     $users = $stmtUsers->fetchAll();
 
-    // 2. Lấy danh sách Vai trò (Roles) để đổ vào thanh chọn (Dropdown) lúc Thêm mới
     $stmtRoles = $pdo->query("SELECT * FROM roles");
     $roles = $stmtRoles->fetchAll();
-
 } catch (PDOException $e) {
     die("Lỗi truy vấn: " . $e->getMessage());
 }
@@ -40,7 +35,6 @@ try {
 <body id="page-top">
     <div id="wrapper">
         <?php include 'layouts/sidebar.php'; ?>
-
         <div id="content-wrapper" class="d-flex flex-column">
             <div id="content">
                 <?php include 'layouts/topbar.php'; ?>
@@ -54,15 +48,9 @@ try {
                     </div>
 
                     <?php if (isset($_SESSION['msg'])): ?>
-                        <div class="alert alert-<?php echo $_SESSION['msg_type']; ?> alert-dismissible fade show" role="alert">
-                            <?php 
-                                echo $_SESSION['msg']; 
-                                unset($_SESSION['msg']); // Xóa sau khi hiển thị
-                                unset($_SESSION['msg_type']);
-                            ?>
-                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
+                        <div class="alert alert-<?php echo $_SESSION['msg_type']; ?> alert-dismissible fade show">
+                            <?php echo $_SESSION['msg']; unset($_SESSION['msg']); unset($_SESSION['msg_type']); ?>
+                            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
                         </div>
                     <?php endif; ?>
 
@@ -86,7 +74,7 @@ try {
                                     <tbody>
                                         <?php foreach ($users as $u): ?>
                                         <tr>
-                                            <td class="text-center align-middle"><?php echo htmlspecialchars($u['user_id']); ?></td>
+                                            <td class="text-center align-middle"><?php echo $u['user_id']; ?></td>
                                             <td class="align-middle text-primary font-weight-bold"><?php echo htmlspecialchars($u['username']); ?></td>
                                             <td class="align-middle"><?php echo htmlspecialchars($u['full_name']); ?></td>
                                             <td class="align-middle"><?php echo htmlspecialchars($u['phone']); ?></td>
@@ -98,8 +86,22 @@ try {
                                                 ?>
                                             </td>
                                             <td class="text-center align-middle">
-                                                <button class="btn btn-info btn-sm" title="Sửa"><i class="fas fa-edit"></i></button>
-                                                <button class="btn btn-danger btn-sm" title="Khóa"><i class="fas fa-trash"></i></button>
+                                                <button class="btn btn-info btn-sm btn-edit" 
+                                                    data-id="<?php echo $u['user_id']; ?>"
+                                                    data-username="<?php echo htmlspecialchars($u['username']); ?>"
+                                                    data-fullname="<?php echo htmlspecialchars($u['full_name']); ?>"
+                                                    data-phone="<?php echo htmlspecialchars($u['phone']); ?>"
+                                                    data-role="<?php echo $u['role_id']; ?>"
+                                                    data-toggle="modal" data-target="#editUserModal" title="Sửa">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                
+                                                <button class="btn btn-danger btn-sm btn-delete" 
+                                                    data-id="<?php echo $u['user_id']; ?>"
+                                                    data-fullname="<?php echo htmlspecialchars($u['full_name']); ?>"
+                                                    data-toggle="modal" data-target="#deleteUserModal" title="Xóa">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
                                             </td>
                                         </tr>
                                         <?php endforeach; ?>
@@ -119,31 +121,28 @@ try {
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title font-weight-bold">Tạo tài khoản mới</h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
                 </div>
                 <form action="../../api/admin/create_user.php" method="POST">
                     <div class="modal-body">
                         <div class="form-group">
-                            <label>Tên đăng nhập (Viết liền, không dấu)</label>
+                            <label>Tên đăng nhập</label>
                             <input type="text" class="form-control" name="username" required>
                         </div>
                         <div class="form-group">
-                            <label>Mật khẩu khởi tạo</label>
+                            <label>Mật khẩu</label>
                             <input type="password" class="form-control" name="password" value="123456" required>
-                            <small class="text-muted">Mặc định là 123456. Người dùng có thể tự đổi sau.</small>
                         </div>
                         <div class="form-group">
-                            <label>Họ và Tên thực tế</label>
+                            <label>Họ và Tên</label>
                             <input type="text" class="form-control" name="full_name" required>
                         </div>
                         <div class="form-group">
-                            <label>Số điện thoại liên hệ</label>
+                            <label>Số điện thoại</label>
                             <input type="text" class="form-control" name="phone" required>
                         </div>
                         <div class="form-group">
-                            <label>Phân quyền (Vai trò)</label>
+                            <label>Quyền</label>
                             <select class="form-control" name="role_id" required>
                                 <?php foreach ($roles as $r): ?>
                                     <option value="<?php echo $r['role_id']; ?>"><?php echo $r['role_name']; ?></option>
@@ -151,16 +150,91 @@ try {
                             </select>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy bỏ</button>
-                        <button type="submit" class="btn btn-primary">Xác nhận tạo mới</button>
-                    </div>
+                    <div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button><button type="submit" class="btn btn-primary">Tạo mới</button></div>
                 </form>
             </div>
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.0/js/bootstrap.bundle.min.js"></script>
+    <div class="modal fade" id="editUserModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title font-weight-bold">Cập nhật thông tin</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
+                </div>
+                <form action="../../api/admin/update_user.php" method="POST">
+                    <div class="modal-body">
+                        <input type="hidden" name="user_id" id="edit_id">
+                        
+                        <div class="form-group">
+                            <label>Tên đăng nhập</label>
+                            <input type="text" class="form-control" id="edit_username" readonly>
+                            <small class="text-danger">Không được phép đổi Tên đăng nhập</small>
+                        </div>
+                        <div class="form-group">
+                            <label>Mật khẩu mới (Bỏ trống nếu không muốn đổi)</label>
+                            <input type="password" class="form-control" name="password" placeholder="Nhập pass mới...">
+                        </div>
+                        <div class="form-group">
+                            <label>Họ và Tên</label>
+                            <input type="text" class="form-control" name="full_name" id="edit_fullname" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Số điện thoại</label>
+                            <input type="text" class="form-control" name="phone" id="edit_phone" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Quyền</label>
+                            <select class="form-control" name="role_id" id="edit_role" required>
+                                <?php foreach ($roles as $r): ?>
+                                    <option value="<?php echo $r['role_id']; ?>"><?php echo $r['role_name']; ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button><button type="submit" class="btn btn-info">Cập nhật</button></div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteUserModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title font-weight-bold">Xác nhận Xóa</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
+                </div>
+                <form action="../../api/admin/delete_user.php" method="POST">
+                    <div class="modal-body">
+                        <input type="hidden" name="user_id" id="del_id">
+                        <p>Bạn có chắc chắn muốn xóa tài khoản của <strong id="del_name" class="text-danger"></strong> không?</p>
+                        <p class="text-muted small">Lưu ý: Hành động này không thể hoàn tác.</p>
+                    </div>
+                    <div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button><button type="submit" class="btn btn-danger">Xóa Vĩnh Viễn</button></div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    
+    
+    <script>
+        $(document).ready(function() {
+            $('.btn-edit').on('click', function() {
+                $('#edit_id').val($(this).data('id'));
+                $('#edit_username').val($(this).data('username'));
+                $('#edit_fullname').val($(this).data('fullname'));
+                $('#edit_phone').val($(this).data('phone'));
+                $('#edit_role').val($(this).data('role'));
+            });
+
+            $('.btn-delete').on('click', function() {
+                $('#del_id').val($(this).data('id'));
+                $('#del_name').text($(this).data('fullname'));
+            });
+        });
+    </script>
 </body>
 </html>
