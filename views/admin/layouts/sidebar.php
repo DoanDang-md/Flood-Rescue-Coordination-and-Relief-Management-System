@@ -20,4 +20,10 @@
     <li class="nav-item">
         <a class="nav-link" href="manage_users.php"><i class="fas fa-fw fa-user-cog"></i> <span>Quản lý tài khoản</span></a>
     </li>
+    <li class="nav-item <?php echo ($currentPage == 'rescue_report.php') ? 'active' : ''; ?>">
+    <a class="nav-link" href="rescue_report.php">
+        <i class="fas fa-fw fa-chart-pie"></i>
+        <span>Báo cáo Thống kê</span>
+    </a>
+</li>
 </ul>
