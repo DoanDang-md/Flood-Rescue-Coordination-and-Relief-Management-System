@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Cứu hộ Lũ lụt | Đội cứu hộ</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #f0f4f8;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            padding-bottom: 30px;
+            min-height: 100vh;
+        }
+        
+        /* Header */
+        .app-header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 18px 16px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .app-header h3 {
+            margin: 0;
+            font-weight: 700;
+            font-size: 1.3rem;
+        }
+        
+        .app-header small {
+            opacity: 0.85;
+            font-size: 0.8rem;
+        }
+        
+        .logout-btn {
+            color: white !important;
+            opacity: 0.85;
+            transition: opacity 0.2s;
+            text-decoration: none;
+            font-size: 1.2rem;
+        }
+        
+        .logout-btn:hover {
+            opacity: 1;
+            color: white;
+        }
+        
+        /* Team Info Bar */
+        .team-info {
+            background: white;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .team-badge {
+            background: #2a5298;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .refresh-btn {
+            color: #2a5298;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 20px;
+            background: #f0f4f8;
+            border: none;
+            font-size: 0.9rem;
+        }
+        
+        .refresh-btn i {
+            margin-right: 5px;
+        }
+        
+        /* Mission Card */
+        .mission-card {
+            background: white;
+            border-radius: 20px;
+            padding: 18px;
+            margin: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border-left: 8px solid #ffc107;
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        .mission-card.rescuing {
+            border-left-color: #28a745;
+            background: linear-gradient(to right, #f0fff4 0%, white 100%);
+        }
+        
+        .mission-card.critical {
+            border-left-color: #dc3545;
+            background: linear-gradient(to right, #fff5f5 0%, white 100%);
+        }
+        
+        /* Status Badge */
+        .status-badge {
+            display: inline-block;
+            padding: 5px 14px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-badge.moving {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-badge.rescuing {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        /* Severity Tag */
+        .severity-tag {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+        }
+        
+        .severity-critical {
+            background: #dc3545;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+        
+        .severity-high {
+            background: #fd7e14;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+        
+        /* Citizen Info */
+        .citizen-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #1e3c72;
+            padding-right: 70px;
+        }
+        
+        .info-row {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 8px;
+            color: #555;
+            font-size: 0.95rem;
+        }
+        
+        .info-row i {
+            width: 24px;
+            color: #2a5298;
+            margin-top: 3px;
+        }
+        
+        .info-row span {
+            flex: 1;
+        }
+        
+        /* Map Preview */
+        .map-preview {
+            height: 130px;
+            border-radius: 12px;
+            margin: 12px 0;
+            overflow: hidden;
+            background: #e9ecef;
+            border: 1px solid #dee2e6;
+        }
+        
+        .map-preview iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+        
+        /* Action Buttons */
+        .btn-action {
+            width: 100%;
+            padding: 14px;
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 14px;
+            margin-top: 8px;
+            border: none;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-action:active {
+            transform: scale(0.98);
+        }
+        
+        .btn-moving {
+            background: #ffc107;
+            color: #000;
+        }
+        
+        .btn-rescuing {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-complete {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-maps {
+            width: 100%;
+            padding: 10px;
+            font-size: 0.9rem;
+            border-radius: 10px;
+            margin-top: 8px;
+            background: white;
+            border: 1px solid #2a5298;
+            color: #2a5298;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+        
+        .btn-maps:hover {
+            background: #f0f4f8;
+            color: #1e3c72;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+        
+        .empty-state i {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+            color: #2a5298;
+        }
+        
+        .empty-state h4 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        /* Loading */
+        .loading-container {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        /* Error Alert */
+        .error-alert {
+            margin: 16px;
+            padding: 16px;
+            border-radius: 12px;
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        /* Auto Refresh Indicator */
+        .refresh-indicator {
+            text-align: center;
+            padding: 16px;
+            color: #6c757d;
+            font-size: 0.85rem;
+            border-top: 1px solid #e0e0e0;
+            margin-top: 10px;
+        }
+        
+        /* People count highlight */
+        .people-count {
+            background: #e74c3c;
+            color: white;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            display: inline-block;
+            margin-left: 8px;
+        }
+        
+        /* Animation */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="app-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h3><i class="fas fa-life-ring me-2"></i>CỨU HỘ LŨ LỤT</h3>
+            <small><i class="fas fa-circle text-success me-1" style="font-size: 0.5rem;"></i>Đang hoạt động</small>
+        </div>
+        <a href="#" onclick="logout()" class="logout-btn" title="Đăng xuất">
+            <i class="fas fa-sign-out-alt"></i>
+        </a>
+    </div>
+</header>
+
+<!-- Team Info -->
+<div class="team-info">
+    <div>
+        <i class="fas fa-users me-2" style="color: #2a5298;"></i>
+        <span id="team-name">Đội cứu hộ</span>
+        <span class="team-badge ms-2" id="team-id-badge">#001</span>
+    </div>
+    <button class="refresh-btn" onclick="loadMissions()">
+        <i class="fas fa-sync-alt"></i> Làm mới
+    </button>
+</div>
+
+<!-- Main Content Container -->
+<div id="main-content">
+    <div class="loading-container">
+        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+            <span class="visually-hidden">Đang tải...</span>
+        </div>
+        <p class="mt-3 text-muted">Đang tải danh sách nhiệm vụ...</p>
+    </div>
+</div>
+
+<!-- Auto Refresh Indicator -->
+<div class="refresh-indicator">
+    <i class="fas fa-sync-alt fa-spin me-1"></i> 
+    Tự động cập nhật sau <span id="countdown">30</span> giây
+    <br>
+    <small class="text-muted">Lần cập nhật cuối: <span id="last-update">--:--:--</span></small>
+</div>
+
+<!-- JavaScript -->
+<script>
+// ==================== GLOBAL VARIABLES ====================
+let currentMissions = [];
+let teamInfo = null;
+let autoRefreshTimer = null;
+let countdownTimer = null;
+let countdownValue = 30;
+
+// API Base URL - Điều chỉnh nếu cần
+const API_BASE = '/api/rescuer';
+
+// ==================== INITIALIZATION ====================
+document.addEventListener('DOMContentLoaded', function() {
+    // Kiểm tra đăng nhập (có thể kiểm tra session/cookie)
+    checkAuth();
+    
+    // Load missions lần đầu
+    loadMissions();
+    
+    // Bắt đầu auto refresh
+    startAutoRefresh();
+});
+
+// ==================== AUTHENTICATION ====================
+function checkAuth() {
+    // Giả định: nếu không có session, chuyển về trang login
+    // Có thể kiểm tra bằng cách gọi 1 API check-auth
+    fetch('/api/check_auth.php')
+        .then(res => {
+            if (!res.ok) {
+                window.location.href = '/index.html';
+            }
+        })
+        .catch(() => {
+            // Nếu API không tồn tại, bỏ qua
+            console.log('Auth check skipped');
+        });
+}
+
+function logout() {
+    if (confirm('Bạn có chắc muốn đăng xuất?')) {
+        fetch('/api/logout.php')
+            .then(() => {
+                window.location.href = '/index.html';
+            })
+            .catch(() => {
+                window.location.href = '/index.html';
+            });
+    }
+}
+
+// ==================== LOAD MISSIONS ====================
+async function loadMissions() {
+    const container = document.getElementById('main-content');
+    
+    try {
+        const response = await fetch(`${API_BASE}/get_missions.php`);
+        
+        // Kiểm tra nếu chưa đăng nhập
+        if (response.status === 401) {
+            window.location.href = '/index.html';
+            return;
+        }
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        
+        // Lưu missions
+        currentMissions = data;
+        
+        // Render UI
+        renderMissions(data);
+        
+        // Cập nhật thời gian
+        updateLastUpdateTime();
+        
+        // Reset countdown
+        resetCountdown();
+        
+    } catch (error) {
+        console.error('Load missions error:', error);
+        showError(container, error.message);
+    }
+}
+
+// ==================== RENDER MISSIONS ====================
+function renderMissions(missions) {
+    const container = document.getElementById('main-content');
+    
+    // Nếu không có nhiệm vụ
+    if (!missions || missions.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-check-circle"></i>
+                <h4>Không có nhiệm vụ đang chờ</h4>
+                <p class="text-muted">Hãy sẵn sàng và chờ điều phối tiếp theo</p>
+                <button class="btn btn-outline-primary mt-3" onclick="loadMissions()">
+                    <i class="fas fa-sync-alt me-2"></i>Kiểm tra ngay
+                </button>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    
+    missions.forEach(mission => {
+        html += renderMissionCard(mission);
+    });
+    
+    container.innerHTML = html;
+    
+    // Cập nhật tên đội nếu có
+    if (missions.length > 0) {
+        updateTeamInfo();
+    }
+}
+
+function renderMissionCard(mission) {
+    // Xác định class cho card
+    let cardClass = 'mission-card';
+    if (mission.mission_status === 'Đang cứu hộ') {
+        cardClass += ' rescuing';
+    }
+    if (mission.severity === 'Critical') {
+        cardClass += ' critical pulse';
+    }
+    
+    // Status badge
+    let statusBadge = '';
+    if (mission.mission_status === 'Đang di chuyển') {
+        statusBadge = '<span class="status-badge moving"><i class="fas fa-truck me-1"></i>ĐANG DI CHUYỂN</span>';
+    } else if (mission.mission_status === 'Đang cứu hộ') {
+        statusBadge = '<span class="status-badge rescuing"><i class="fas fa-hands-helping me-1"></i>ĐANG CỨU HỘ</span>';
+    }
+    
+    // Severity tag
+    let severityTag = '';
+    if (mission.severity === 'Critical') {
+        severityTag = '<span class="severity-critical"><i class="fas fa-exclamation-triangle me-1"></i>KHẨN CẤP</span>';
+    } else if (mission.severity === 'High') {
+        severityTag = '<span class="severity-high"><i class="fas fa-arrow-up me-1"></i>ƯU TIÊN CAO</span>';
+    }
+    
+    // People count display
+    const peopleCount = mission.number_of_people || 0;
+    const peopleDisplay = peopleCount > 0 ? 
+        `<span class="people-count"><i class="fas fa-users me-1"></i>${peopleCount} người</span>` : 
+        '<span class="badge bg-secondary ms-2">Chưa rõ số người</span>';
+    
+    // Action button
+    let actionButton = '';
+    if (mission.mission_status === 'Đang di chuyển') {
+        actionButton = `
+            <button class="btn-action btn-rescuing" onclick="updateStatus(${mission.mission_id}, 'Đang cứu hộ')">
+                <i class="fas fa-map-marker-alt"></i> ĐÃ TỚI NƠI - BẮT ĐẦU CỨU HỘ
+            </button>
+        `;
+    } else if (mission.mission_status === 'Đang cứu hộ') {
+        actionButton = `
+            <button class="btn-action btn-complete" onclick="completeMission(${mission.mission_id})">
+                <i class="fas fa-check-circle"></i> HOÀN THÀNH CỨU HỘ
+            </button>
+        `;
+    }
+    
+    // Map URL
+    const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${mission.longitude-0.005}%2C${mission.latitude-0.005}%2C${mission.longitude+0.005}%2C${mission.latitude+0.005}&layer=mapnik&marker=${mission.latitude}%2C${mission.longitude}`;
+    
+    // Google Maps direction URL
+    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${mission.latitude},${mission.longitude}`;
+    
+    return `
+        <div class="${cardClass}">
+            ${severityTag ? `<div class="severity-tag">${severityTag}</div>` : ''}
+            
+            ${statusBadge}
+            
+            <div class="citizen-name">
+                <i class="fas fa-user-circle me-1"></i>${escapeHtml(mission.citizen_name)}
+            </div>
+            
+            <div class="info-row">
+                <i class="fas fa-phone-alt"></i>
+                <span>${escapeHtml(mission.phone)}</span>
+            </div>
+            
+            <div class="info-row">
+                <i class="fas fa-map-pin"></i>
+                <span>${escapeHtml(mission.address_note)} ${peopleDisplay}</span>
+            </div>
+            
+            ${mission.description ? `
+            <div class="info-row">
+                <i class="fas fa-info-circle"></i>
+                <span>${escapeHtml(mission.description)}</span>
+            </div>
+            ` : ''}
+            
+            <div class="map-preview">
+                <iframe src="${mapUrl}" loading="lazy"></iframe>
+            </div>
+            
+            <a href="${googleMapsUrl}" target="_blank" class="btn-maps">
+                <i class="fas fa-directions"></i> Chỉ đường Google Maps
+            </a>
+            
+            ${actionButton}
+            
+            <div class="text-muted mt-2 small">
+                <i class="far fa-clock me-1"></i>
+                Giao lúc: ${formatDateTime(mission.assigned_at)}
+            </div>
+        </div>
+    `;
+}
+
+// ==================== UPDATE STATUS ====================
+async function updateStatus(missionId, newStatus) {
+    if (!confirm(`Xác nhận chuyển trạng thái sang "${newStatus}"?`)) {
+        return;
+    }
+    
+    // Disable nút để tránh click nhiều lần
+    const buttons = document.querySelectorAll('button');
+    buttons.forEach(btn => btn.disabled = true);
+    
+    try {
+        const response = await fetch(`${API_BASE}/update_status.php?mission_id=${missionId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                status: newStatus
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.error || 'Lỗi cập nhật');
+        }
+        
+        // Thông báo thành công
+        alert(`✅ ${result.message}`);
+        
+        // Tải lại danh sách
+        await loadMissions();
+        
+    } catch (error) {
+        console.error('Update error:', error);
+        alert(`❌ Lỗi: ${error.message}`);
+        
+        // Enable lại nút
+        buttons.forEach(btn => btn.disabled = false);
+    }
+}
+
+// ==================== COMPLETE MISSION ====================
+async function completeMission(missionId) {
+    // Nhập ghi chú
+    const note = prompt('📝 Ghi chú nhanh về tình hình (có thể bỏ trống):') || '';
+    
+    // Nhập số người cứu được
+    let peopleSaved = prompt('👥 Nhập SỐ NGƯỜI ĐÃ CỨU HỘ THÀNH CÔNG:');
+    
+    if (peopleSaved === null) {
+        return; // User bấm Cancel
+    }
+    
+    peopleSaved = parseInt(peopleSaved);
+    
+    if (isNaN(peopleSaved) || peopleSaved < 0) {
+        alert('❌ Vui lòng nhập số người hợp lệ!');
+        return;
+    }
+    
+    // Xác nhận lần cuối
+    if (!confirm(`Xác nhận HOÀN THÀNH nhiệm vụ?\nSố người cứu được: ${peopleSaved}`)) {
+        return;
+    }
+    
+    // Disable nút
+    const buttons = document.querySelectorAll('button');
+    buttons.forEach(btn => btn.disabled = true);
+    
+    try {
+        const response = await fetch(`${API_BASE}/update_status.php?mission_id=${missionId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                status: 'Hoàn thành',
+                note: note,
+                people_saved: peopleSaved
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.error || 'Lỗi cập nhật');
+        }
+        
+        // Thông báo thành công
+        alert(`🎉 HOÀN THÀNH NHIỆM VỤ!\n${result.message}\nĐã cứu: ${peopleSaved} người`);
+        
+        // Tải lại danh sách
+        await loadMissions();
+        
+    } catch (error) {
+        console.error('Complete error:', error);
+        alert(`❌ Lỗi: ${error.message}`);
+        
+        // Enable lại nút
+        buttons.forEach(btn => btn.disabled = false);
+    }
+}
+
+// ==================== TEAM INFO ====================
+function updateTeamInfo() {
+    // Có thể gọi API để lấy thông tin team
+    // Tạm thời hiển thị từ session hoặc cookie
+    const teamNameElement = document.getElementById('team-name');
+    const teamIdBadge = document.getElementById('team-id-badge');
+    
+    // Giá trị mặc định
+    if (teamNameElement) teamNameElement.textContent = 'Đội cứu hộ 01';
+    if (teamIdBadge) teamIdBadge.textContent = '#001';
+}
+
+// ==================== AUTO REFRESH ====================
+function startAutoRefresh() {
+    // Refresh mỗi 30 giây
+    autoRefreshTimer = setInterval(() => {
+        loadMissions();
+    }, 30000);
+    
+    // Countdown timer
+    countdownTimer = setInterval(() => {
+        countdownValue--;
+        document.getElementById('countdown').textContent = countdownValue;
+        
+        if (countdownValue <= 0) {
+            countdownValue = 30;
+        }
+    }, 1000);
+}
+
+function resetCountdown() {
+    countdownValue = 30;
+    document.getElementById('countdown').textContent = countdownValue;
+}
+
+function updateLastUpdateTime() {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    document.getElementById('last-update').textContent = timeStr;
+}
+
+// ==================== ERROR HANDLING ====================
+function showError(container, message) {
+    container.innerHTML = `
+        <div class="error-alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <strong>Lỗi kết nối!</strong><br>
+            ${escapeHtml(message)}
+            <button class="btn btn-outline-danger btn-sm mt-3 w-100" onclick="loadMissions()">
+                <i class="fas fa-redo me-2"></i>Thử lại
+            </button>
+        </div>
+    `;
+}
+
+// ==================== UTILITY FUNCTIONS ====================
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function formatDateTime(dateTimeStr) {
+    if (!dateTimeStr) return 'N/A';
+    try {
+        const date = new Date(dateTimeStr);
+        return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + 
+               ' - ' + 
+               date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
+    } catch (e) {
+        return dateTimeStr;
+    }
+}
+
+// Cleanup khi rời trang
+window.addEventListener('beforeunload', function() {
+    if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+    if (countdownTimer) clearInterval(countdownTimer);
+});
+</script>
+
+</body>
+</html>
