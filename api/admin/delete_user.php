@@ -9,7 +9,7 @@ if (!isset($_SESSION['role_name']) || $_SESSION['role_name'] !== 'Admin') {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user_id = $_POST['user_id'];
 
-    // 1. Chống việc Admin tự "cắt cổ" mình
+    // Chống việc ADmin tự xóa bản thân
     if ($user_id == $_SESSION['user_id']) {
         $_SESSION['msg'] = "Lỗi: Bạn không thể tự xóa tài khoản của chính mình đang đăng nhập!";
         $_SESSION['msg_type'] = "danger";

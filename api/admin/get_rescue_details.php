@@ -10,7 +10,7 @@ if (!isset($_SESSION['role_name']) || $_SESSION['role_name'] !== 'Admin') {
 }
 
 try {
-    // Sửa lỗi sai tên cột của TV6: r.location -> r.address_note, rt.name -> rt.team_name
+    
     $sql = "
         SELECT 
             r.request_id AS id, 
