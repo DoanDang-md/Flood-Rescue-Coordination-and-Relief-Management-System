@@ -18,7 +18,7 @@
 │ ├── rescuer/ # TV4 code ở đây
 │ └── admin/ # TV5, TV6 code ở đây
 │
-├── database/ # Chứa file file .sql để các bạn tải về import vào phpMyAdmin
+├── database/ # Chứa file file .sql 
 │ └── flood_rescue_db.sql
 │
 ├── .gitignore # File cấu hình bỏ qua các file rác
