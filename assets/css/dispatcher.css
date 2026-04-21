@@ -1,0 +1,230 @@
+/* ── Stats cards ── */
+.disp-stat-card {
+  border-radius: 8px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+.disp-stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.disp-stat-val {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+}
+.disp-stat-lbl {
+  font-size: 11px;
+  color: #858796;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+/* ── Map ── */
+.map-card {
+  border-radius: 8px;
+  overflow: hidden;
+}
+#map {
+  height: 460px;
+  width: 100%;
+}
+
+/* ── Request list ── */
+.req-scroll {
+  max-height: 460px;
+  overflow-y: auto;
+}
+.req-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.req-scroll::-webkit-scrollbar-thumb {
+  background: #dee2e6;
+  border-radius: 2px;
+}
+.req-item {
+  border-left: 4px solid transparent;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background 0.15s;
+  border-bottom: 1px solid #f0f0f0;
+}
+.req-item:hover {
+  background: #f8f9fc;
+}
+.req-item.selected {
+  background: #eaf1fb;
+}
+.req-item.b-danger {
+  border-left-color: #e74a3b;
+}
+.req-item.b-warning {
+  border-left-color: #f6c23e;
+}
+.req-item.b-success {
+  border-left-color: #1cc88a;
+}
+.req-name {
+  font-weight: 600;
+  font-size: 13px;
+  color: #2e3a5c;
+}
+.req-addr {
+  font-size: 11px;
+  color: #858796;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.req-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+/* ── Filter chips ── */
+.chip {
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid #dee2e6;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: #858796;
+}
+.chip.act-all {
+  background: #4e73df;
+  color: #fff;
+  border-color: #4e73df;
+}
+.chip.act-red {
+  background: #e74a3b;
+  color: #fff;
+  border-color: #e74a3b;
+}
+.chip.act-yellow {
+  background: #f6c23e;
+  color: #fff;
+  border-color: #f6c23e;
+}
+
+/* ── Team list ── */
+.team-item {
+  padding: 10px 14px;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.team-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #4e73df;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.team-name-txt {
+  font-size: 13px;
+  font-weight: 600;
+  color: #2e3a5c;
+}
+.team-sub {
+  font-size: 11px;
+  color: #858796;
+}
+
+/* ── Map legend & Detail ── */
+.map-legend {
+  position: absolute;
+  bottom: 28px;
+  right: 12px;
+  background: rgba(255, 255, 255, 0.93);
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  padding: 8px 12px;
+  z-index: 999;
+  font-size: 11px;
+  pointer-events: none;
+}
+.ldot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 5px;
+}
+#detail-box {
+  background: #f8f9fc;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 16px;
+  display: none;
+  margin-top: 12px;
+}
+#detail-box.show {
+  display: block;
+}
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #1cc88a;
+  display: inline-block;
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.8);
+  }
+}
+
+/* 1. KHÓA CHẶT SIDEBAR (Không cho co rút, luôn nổi lên trên) */
+#accordionSidebar {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  min-width: 224px; /* Bắt buộc giữ đúng chiều rộng của SB Admin 2 */
+  flex-shrink: 0; /* Không bao giờ được phép co nhỏ lại */
+  z-index: 1030 !important; /* Đảm bảo đè lên mọi thứ của Leaflet */
+  overflow-y: auto;
+}
+
+/* 2. ÉP KHU VỰC BÊN PHẢI VÀO KHUÔN KHỔ */
+#content-wrapper {
+  flex: 1; /* Chỉ được phép chiếm phần không gian "còn lại" */
+  min-width: 0; /* 🪄 CÂU THẦN CHÚ: Ép khung bên phải phải tuân thủ giới hạn, không được phình to theo bản đồ */
+  overflow-x: hidden; /* Chặt đứt mọi thứ tràn ra ngoài */
+  position: relative;
+  z-index: 1; /* Nằm thấp hơn Sidebar */
+}
+
+/* 3. KIỂM SOÁT BẢN ĐỒ */
+.map-card {
+  width: 100%;
+  max-width: 100%; /* Không cho thẻ card bự hơn khung cha */
+}
