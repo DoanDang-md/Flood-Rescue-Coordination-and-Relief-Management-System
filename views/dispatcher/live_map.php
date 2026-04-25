@@ -256,16 +256,109 @@ if (!isset($_SESSION['role_name']) || $_SESSION['role_name'] !== 'Dispatcher') {
     }
 
     // Mở Modal Điều phối
+    // Mở Modal Điều phối
     function openAssignFlow() {
-        alert('Chức năng điều phối sẽ implement tiếp theo!\n(POST /dispatcher/assign)');
+        // Kiểm tra xem đã chọn ca nào trên bản đồ chưa
+        if (!selectedRequestId) {
+            alert("Vui lòng click chọn một ca cứu hộ trên bản đồ trước!");
+            return;
+        }
+        
+        // Lấy thông tin ca đang chọn
+        const req = allRequests.find(r => r.request_id === selectedRequestId);
+        if (!req) return;
+
+        // Đổ tên lên Modal
+        document.getElementById('modal-req-name').textContent = req.citizen_name + " - " + req.address_note;
+        
+        const container = document.getElementById('team-list-container');
+        container.innerHTML = '';
+        
+        // Render danh sách đội
+        if (!allTeams || allTeams.length === 0) {
+            container.innerHTML = '<div class="p-3 text-center text-muted">Không có đội cứu hộ nào! Vui lòng kiểm tra lại Database.</div>';
+        } else {
+            allTeams.forEach(t => {
+                const isBusy = t.status !== 'Available';
+                const badge = isBusy ? '<span class="badge badge-warning">Đang bận</span>' : '<span class="badge badge-success">Sẵn sàng</span>';
+                
+                container.innerHTML += `
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1 font-weight-bold text-primary"><i class="fas fa-truck-pickup mr-2"></i>${esc(t.team_name)}</h6>
+                            <small class="text-muted">Nhân sự: ${t.member_count} | Hoàn thành: ${t.completed_cases}</small>
+                        </div>
+                        <div class="text-right">
+                            <div class="mb-2">${badge}</div>
+                            <button class="btn btn-sm btn-${isBusy ? 'secondary' : 'danger'}" 
+                                    onclick="assignTeam(${req.request_id}, ${t.team_id})" ${isBusy ? 'disabled' : ''}>
+                                Giao nhiệm vụ
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        
+        // Bật Modal lên
+        $('#dispatchModal').modal('show');
     }
 
     // Giao nhiệm vụ (Chuẩn bị nối API)
-    function assignTeam(reqId, teamId) {
-        alert("Đã ghi nhận Lệnh giao việc cho Đội: " + teamId + " xử lý Ca: " + reqId);
-        $('#dispatchModal').modal('hide');
-        // Nơi đây Thành viên 3 sẽ viết code gọi API POST /missions/assign
+    // Giao nhiệm vụ bằng cách gọi API POST
+async function assignTeam(reqId, teamId) {
+    if (!confirm("Bạn chắc chắn muốn điều động Đội này?")) return;
+
+    // 1. Bắt lấy nút bấm một cách an toàn để tránh lỗi sập Javascript
+    let btn = null;
+    let originalText = "Giao nhiệm vụ";
+    
+    // Nếu bắt được sự kiện click
+    if (window.event) {
+        // currentTarget đảm bảo lấy đúng thẻ <button>, dù có click trúng cái icon <i> bên trong
+        btn = window.event.currentTarget; 
+        if (btn) {
+            originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang giao...';
+            btn.disabled = true;
+        }
     }
+
+    try {
+        // 2. Gọi API
+        const res = await fetch(`${API_BASE}/dispatcher/assign_mission.php`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                request_id: reqId,
+                team_id: teamId
+            })
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+            $('#dispatchModal').modal('hide');
+            await loadMapPage(); // Tự động load lại bản đồ
+            alert("✅ " + data.message);
+        } else {
+            alert("❌ Lỗi: " + data.message);
+            // Phục hồi lại nút nếu bị lỗi
+            if (btn) {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+        
+    } catch (error) {
+        console.error("Lỗi kết nối:", error);
+        alert("❌ Mất kết nối đến máy chủ.");
+        if (btn) {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    }
+}
 
     // Tải dữ liệu ban đầu
     async function loadMapPage() {
