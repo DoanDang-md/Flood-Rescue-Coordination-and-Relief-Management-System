@@ -35,12 +35,6 @@
         </a>
     </li>
 
-    <li class="nav-item <?php echo ($currentPage == 'dispatch_missions.php') ? 'active' : ''; ?>">
-        <a class="nav-link" href="dispatch_missions.php">
-            <i class="fas fa-fw fa-clipboard-list"></i>
-            <span>Lệnh Điều động</span>
-        </a>
-    </li>
 
     <hr class="sidebar-divider">
     <div class="sidebar-heading">Nguồn lực & Hậu cần</div>

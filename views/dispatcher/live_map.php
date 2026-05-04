@@ -1,90 +1,123 @@
 <?php
 session_start();
-// Bảo mật: Chỉ Điều phối viên mới được truy cập
-if (!isset($_SESSION['role_name']) || $_SESSION['role_name'] !== 'Dispatcher') { 
-    header("Location: ../../index.html"); 
-    exit; 
+if (!isset($_SESSION['role_name']) || !in_array($_SESSION['role_name'], ['Admin', 'Dispatcher'])) {
+    header("Location: ../../index.html"); exit;
 }
 ?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="utf-8">
-    <title>Bản đồ điểm cứu hộ - Dispatcher</title>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bản đồ Điều phối Trực tiếp (LIVE)</title>
+
+    <!-- Styles -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
     <link href="../../assets/css/sb-admin-2.min.css" rel="stylesheet">
+    <link href="../../assets/css/style.css" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
+
     <style>
-        /* Ép khung bên phải không được lấn Sidebar */
-        #content-wrapper { flex: 1; min-width: 0; position: relative; z-index: 1; }
+        .map-card { border-radius: 8px; overflow: hidden; }
+        #map { height: 550px; width: 100%; z-index: 1; }
         
-        /* Style cho Bản đồ & Bộ lọc */
-        .map-header { background-color: #f8f9fc; border-bottom: 1px solid #e3e6f0; }
-        .map-title { color: #4e73df; font-weight: 700; font-size: 1.1rem; }
-        .chip { padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; border: 1px solid #dee2e6; background: #fff; cursor: pointer; transition: all .2s; color: #5a5c69;}
-        .chip:hover { background: #eaecf4; }
-        .chip.act-all { background: #4e73df; color: #fff; border-color: #4e73df; }
-        .chip.act-red { background: #e74a3b; color: #fff; border-color: #e74a3b; }
-        .chip.act-yellow { background: #f6c23e; color: #fff; border-color: #f6c23e; }
+        /* Layout tùy chỉnh cho danh sách / tab */
+        .req-scroll { height: 550px; overflow-y: auto; }
+        .req-scroll::-webkit-scrollbar { width: 5px; }
+        .req-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 5px; }
         
-        /* Chú thích Bản đồ */
-        .map-legend { position: absolute; bottom: 20px; right: 20px; background: white; padding: 12px 16px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 1000; }
-        .legend-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 8px; }
+        .req-item, .team-item { border-left: 4px solid transparent; padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #f0f0f0; transition: .2s; }
+        .req-item:hover { background: #f8f9fc; }
+        .req-item.selected { background: #eaf1fb; }
+        .req-item.b-danger { border-left-color: #e74a3b; }
+        .req-item.b-warning { border-left-color: #f6c23e; }
         
-        /* Bảng Chi tiết Yêu cầu */
-        #detail-card { display: none; border-top: 4px solid #4e73df; border-radius: 8px; }
-        .detail-label { font-size: 0.75rem; font-weight: 700; color: #858796; text-transform: uppercase; margin-bottom: 0.25rem; }
-        .detail-value { font-size: 1rem; color: #5a5c69; margin-bottom: 1.5rem; }
+        .team-avatar { width: 40px; height: 40px; border-radius: 50%; background: #4e73df; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; }
+        .team-name-txt { font-weight: bold; color: #2c3e50; }
+
+        /* Detail box hiện đè lên map */
+        #detail-box { position: absolute; bottom: 20px; left: 20px; right: 20px; background: rgba(255,255,255,0.95); backdrop-filter: blur(5px); border-radius: 10px; padding: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); z-index: 1000; display: none; }
+        #detail-box.show { display: block; }
+        
+        .live-dot { width: 10px; height: 10px; border-radius: 50%; background: #1cc88a; display: inline-block; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.8)} }
     </style>
 </head>
-<body id="page-top">
-<div id="wrapper" style="display: flex; align-items: stretch;">
-    
-    <?php include 'layouts/sidebar.php'; ?>
 
-    <div id="content-wrapper" class="d-flex flex-column bg-light">
+<body id="page-top">
+<div id="wrapper">
+    <?php include 'layouts/sidebar.php'; ?>
+    <div id="content-wrapper" class="d-flex flex-column">
         <div id="content">
             <?php include 'layouts/topbar.php'; ?>
-            
-            <div class="container-fluid pb-4">
-                
-                <div class="card shadow-sm mb-4" style="border-radius: 12px; overflow: hidden;">
-                    <div class="card-header map-header py-3 d-flex flex-row align-items-center justify-content-between">
-                        <h6 class="m-0 map-title"><i class="fas fa-map-marked-alt mr-2"></i>Bản đồ điểm cứu hộ</h6>
-                        <div class="d-flex gap-2">
-                            <button class="chip act-all mr-2" onclick="filterMap('all', this)">Tất cả</button>
-                            <button class="chip mr-2" onclick="filterMap('red', this)"><span class="text-danger mr-1">●</span>Khẩn cấp</button>
-                            <button class="chip" onclick="filterMap('yellow', this)"><span class="text-warning mr-1">●</span>Bình thường</button>
-                        </div>
-                    </div>
-                    <div class="card-body p-0" style="position:relative;">
-                        <div id="map" style="height: 550px; background-color: #1a1a1a;"></div>
-                        <div class="map-legend">
-                            <div class="text-xs font-weight-bold text-uppercase text-muted mb-2">CHÚ THÍCH</div>
-                            <div class="mb-1 text-sm text-gray-700"><span class="legend-dot bg-danger"></span>Critical / High</div>
-                            <div class="mb-1 text-sm text-gray-700"><span class="legend-dot bg-warning"></span>Medium / Low</div>
-                            <div class="text-sm text-gray-700"><span class="legend-dot bg-success"></span>Hoàn thành</div>
-                        </div>
-                    </div>
+
+            <div class="container-fluid mt-3">
+                <div class="d-sm-flex align-items-center justify-content-between mb-3">
+                    <h1 class="h3 mb-0 text-gray-800">
+                        <i class="fas fa-satellite-dish mr-2 text-danger"></i>RADAR ĐIỀU PHỐI <span class="live-dot ml-2"></span>
+                    </h1>
+                    <button class="btn btn-sm btn-outline-primary" onclick="loadAllData()">
+                        <i class="fas fa-sync-alt mr-1"></i>Làm mới bản đồ
+                    </button>
                 </div>
 
-                <div class="card shadow-sm" id="detail-card">
-                    <div class="card-header bg-white py-3 d-flex flex-row align-items-center justify-content-between border-0">
-                        <h6 class="m-0 font-weight-bold text-primary" style="font-size: 1.1rem;">
-                            <i class="fas fa-info-circle mr-2"></i>Chi tiết yêu cầu
-                        </h6>
-                        <button type="button" class="close" onclick="closeDetail()">&times;</button>
-                    </div>
-                    <div class="card-body pt-0">
-                        <div class="row" id="detail-body">
+                <div class="row">
+                    <!-- CỘT BẢN ĐỒ -->
+                    <div class="col-lg-8 mb-4">
+                        <div class="card shadow map-card position-relative">
+                            <div id="map"></div>
+                            
+                            <!-- Box Chi tiết 1 Ca cứu hộ (Hiển thị khi click marker) -->
+                            <div id="detail-box">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="font-weight-bold text-danger mb-0"><i class="fas fa-bullseye mr-2"></i>MỤC TIÊU ĐANG CHỌN</h6>
+                                    <button class="btn btn-sm btn-light" onclick="closeDetail()"><i class="fas fa-times"></i></button>
+                                </div>
+                                <div class="row" id="detail-body">
+                                    <!-- JS sẽ đẩy nội dung vào đây -->
+                                </div>
+                                <div class="mt-3 border-top pt-2 text-right">
+                                    <button class="btn btn-primary shadow-sm" onclick="openAssignTab()"><i class="fas fa-paper-plane mr-2"></i>Chọn đội & Phát lệnh</button>
+                                </div>
                             </div>
-                        <hr class="mt-2 mb-4">
-                        <div class="text-left">
-                            <button class="btn btn-danger font-weight-bold px-4 py-2" onclick="openAssignFlow()">
-                                <i class="fas fa-bolt mr-2"></i>Điều phối đội cứu hộ
-                            </button>
+                        </div>
+                    </div>
+
+                    <!-- CỘT DANH SÁCH / ĐIỀU PHỐI -->
+                    <div class="col-lg-4 mb-4">
+                        <div class="card shadow h-100">
+                            <div class="card-header p-0">
+                                <ul class="nav nav-tabs nav-justified" id="sideTab">
+                                    <li class="nav-item">
+                                        <a class="nav-link active font-weight-bold text-danger" data-toggle="tab" href="#tab-requests">
+                                            <i class="fas fa-list-alt mr-1"></i>YÊU CẦU MỚI
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link font-weight-bold text-success" data-toggle="tab" href="#tab-teams">
+                                            <i class="fas fa-users mr-1"></i>ĐỘI CỨU HỘ
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="tab-content">
+                                    <!-- TAB YÊU CẦU -->
+                                    <div class="tab-pane fade show active req-scroll" id="tab-requests">
+                                        <div id="request-list"></div>
+                                        <div id="req-empty" class="text-center text-muted py-5" style="display:none;">
+                                            <i class="fas fa-check-circle fa-3x mb-3 text-success"></i><br>Bình yên.<br>Không có ca khẩn cấp nào.
+                                        </div>
+                                    </div>
+                                    <!-- TAB ĐỘI CỨU HỘ -->
+                                    <div class="tab-pane fade req-scroll" id="tab-teams">
+                                        <div class="p-2 bg-light text-center small font-weight-bold text-muted border-bottom">
+                                            Chọn 1 Yêu cầu bên Tab kia, sau đó chọn Đội khả dụng ở đây để Điều phối.
+                                        </div>
+                                        <div id="team-list"></div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -95,282 +128,158 @@ if (!isset($_SESSION['role_name']) || $_SESSION['role_name'] !== 'Dispatcher') {
     </div>
 </div>
 
-<div class="modal fade" id="dispatchModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title font-weight-bold"><i class="fas fa-bolt mr-2"></i>Điều phối Đội cứu hộ</h5>
-                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
-            </div>
-            <div class="modal-body bg-light">
-                <div class="alert alert-warning small mb-3 text-dark">
-                    <strong>Đang phân công cho ca:</strong> <span id="modal-req-name" class="font-weight-bold text-danger"></span>
-                </div>
-                <h6 class="font-weight-bold text-gray-800 mb-3">Danh sách Đội cứu hộ (Ưu tiên Sẵn sàng):</h6>
-                <div id="team-list-container" class="list-group shadow-sm">
-                    </div>
-            </div>
-        </div>
-    </div>
-</div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-<?php include 'layouts/core_scripts.php'; ?>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    let map;
-    let mapMarkers = {}; // Quản lý các điểm ghim trên bản đồ
-    let selectedRequestId = null; // Quản lý xem điểm nào đang được click
+    const API_BASE = '../../api';
+    let map, allRequests=[], allTeams=[], markers={}, selectedId=null;
 
-    // Hàm tạo Icon (Điểm ghim giọt nước)
-    function makeIcon(color, isSelected) {
-        const c = { 
-            red: { f: '#e74a3b', g: 'rgba(231,74,59,.5)' }, 
-            yellow: { f: '#f6c23e', g: 'rgba(246,194,62,.5)' }, 
-            green: { f: '#1cc88a', g: 'rgba(28,200,138,.5)' } 
-        }[color] || { f: '#f6c23e', g: 'rgba(246,194,62,.5)' };
-        
-        const sz = isSelected ? 34 : 26; // Phóng to nếu được chọn
-        const border = isSelected ? '3px solid #fff' : '2px solid rgba(255,255,255,.4)'; // Viền trắng nếu chọn
-        
+    // Khởi tạo bản đồ
+    map = L.map('map').setView([16.047, 108.206], 6);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
+
+    function makeIcon(color, sel) {
+        const c = { red: '#e74a3b', yellow: '#f6c23e' }[color] || '#f6c23e';
+        const sz = sel ? 34 : 26;
         return L.divIcon({
             className: '',
-            html: `<div style="width:${sz}px;height:${sz}px;background:${c.f};border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:${border};box-shadow:0 0 12px ${c.g}; transition: all 0.2s;"></div>`,
+            html: `<div style="width:${sz}px;height:${sz}px;background:${c};border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 0 10px rgba(0,0,0,0.5);"></div>`,
             iconSize: [sz, sz], iconAnchor: [sz/2, sz]
         });
     }
 
-    // Khởi tạo bản đồ
-    function initMap() {
-        map = L.map('map', { center:[10.762622, 106.660172], zoom: 12 });
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
-        setTimeout(() => { map.invalidateSize(); }, 500); // Fix lỗi co dãn
+    // Tải dữ liệu
+    async function loadAllData() {
+        try {
+            const [reqRes, teamRes] = await Promise.all([
+                fetch(`${API_BASE}/dispatcher/get_requests.php?status=Mới`).then(r => r.json()),
+                fetch(`${API_BASE}/dispatcher/get_suggested_teams.php`).then(r => r.json())
+            ]);
+            allRequests = reqRes.success ? reqRes.data : [];
+            allTeams = teamRes.success ? teamRes.data : [];
+            
+            renderMapAndRequests();
+            renderTeams();
+        } catch(e) { console.error("Lỗi lấy dữ liệu", e); }
     }
 
-    // Vẽ Marker từ DB
-    function renderMapMarkers() {
-        Object.values(mapMarkers).forEach(m => map.removeLayer(m));
-        mapMarkers = {};
-        const bounds = [];
+    // Vẽ lên Bản đồ & Danh sách
+    function renderMapAndRequests() {
+        // Clear cũ
+        Object.values(markers).forEach(m => map.removeLayer(m)); markers = {};
+        const list = document.getElementById('request-list'); list.innerHTML = '';
         
-        const filteredReqs = currentFilter === 'all' ? allRequests : allRequests.filter(r => r.marker_color === currentFilter);
+        if (allRequests.length === 0) {
+            document.getElementById('req-empty').style.display = 'block'; return;
+        }
+        document.getElementById('req-empty').style.display = 'none';
 
-        filteredReqs.forEach(r => {
-            if(!r.latitude || !r.longitude) return;
-            
-            let color = r.marker_color || 'yellow';
-            if (r.status === 'Hoàn thành') color = 'green';
-            const isSelected = (r.request_id === selectedRequestId);
+        allRequests.forEach(r => {
+            // Render List
+            const d = document.createElement('div');
+            d.className = `req-item ${r.marker_color === 'red' ? 'b-danger' : 'b-warning'} ${r.request_id === selectedId ? 'selected' : ''}`;
+            d.innerHTML = `
+                <div class="d-flex justify-content-between font-weight-bold text-dark"><span>${r.citizen_name}</span> <span>${r.phone}</span></div>
+                <div class="small text-muted mt-1"><i class="fas fa-map-marker-alt text-danger"></i> ${r.address_note}</div>
+            `;
+            d.onclick = () => selectRequest(r.request_id);
+            list.appendChild(d);
 
-            // TẠO MARKER (Không có popup dư thừa, chỉ hiện bảng chi tiết bên dưới)
-            const m = L.marker([r.latitude, r.longitude], {icon: makeIcon(color, isSelected)}).addTo(map);
-            
-            // XỬ LÝ CLICK
-            m.on('click', () => {
-                // Tắt viền marker cũ
-                if (selectedRequestId && mapMarkers[selectedRequestId]) {
-                    const oldReq = allRequests.find(req => req.request_id === selectedRequestId);
-                    if (oldReq) {
-                        let oldColor = oldReq.marker_color || 'yellow';
-                        if(oldReq.status === 'Hoàn thành') oldColor = 'green';
-                        mapMarkers[selectedRequestId].setIcon(makeIcon(oldColor, false));
-                    }
-                }
-                
-                // Bật viền marker mới
-                selectedRequestId = r.request_id;
-                mapMarkers[selectedRequestId].setIcon(makeIcon(color, true));
-
-                showDetail(r);
-                map.flyTo([r.latitude, r.longitude], 15, { duration: 1.0 });
-            });
-
-            mapMarkers[r.request_id] = m;
-            bounds.push([r.latitude, r.longitude]);
-        });
-
-        if(bounds.length > 0) map.fitBounds(bounds, {padding: [50, 50], maxZoom: 14});
-    }
-
-    // Hiển thị Bảng chi tiết
-    function showDetail(r) {
-        let dotColor = r.marker_color === 'red' ? '#e74a3b' : (r.marker_color === 'yellow' ? '#f6c23e' : '#1cc88a');
-        let statusBadge = r.status === 'Hoàn thành' ? 'success' : 'primary';
-
-        document.getElementById('detail-body').innerHTML = `
-            <div class="col-md-6 col-lg-4">
-                <div class="detail-label">Người yêu cầu</div>
-                <div class="detail-value text-primary font-weight-bold">${esc(r.citizen_name)}</div>
-                <div class="detail-label">Điện thoại</div>
-                <div class="detail-value">${esc(r.phone)}</div>
-                <div class="detail-label">Địa chỉ</div>
-                <div class="detail-value">${esc(r.address_note)}</div>
-                <div class="detail-label">Mô tả</div>
-                <div class="detail-value">${esc(r.description) || '<i>Không có mô tả</i>'}</div>
-            </div>
-            <div class="col-md-6 col-lg-8">
-                <div class="detail-label">Mức độ</div>
-                <div class="detail-value font-weight-bold">
-                    <span style="color: ${dotColor};">●</span> ${r.severity}
-                </div>
-                <div class="detail-label">Trạng thái</div>
-                <div class="detail-value"><span class="badge badge-${statusBadge} px-2 py-1">${esc(r.status)}</span></div>
-                <div class="detail-label">Đội xử lý</div>
-                <div class="detail-value text-muted font-italic">
-                    ${r.team_name ? `<span class="text-success font-weight-bold" style="font-style:normal;">${esc(r.team_name)}</span>` : 'Chưa phân công'}
-                </div>
-            </div>
-        `;
-        $('#detail-card').fadeIn(200);
-    }
-
-    // Đóng Bảng chi tiết
-    function closeDetail() { 
-        $('#detail-card').fadeOut(200); 
-        // Tắt viền marker
-        if (selectedRequestId && mapMarkers[selectedRequestId]) {
-            const req = allRequests.find(r => r.request_id === selectedRequestId);
-            if (req) {
-                let color = req.marker_color || 'yellow';
-                if(req.status === 'Hoàn thành') color = 'green';
-                mapMarkers[selectedRequestId].setIcon(makeIcon(color, false));
+            // Render Map
+            if (r.latitude && r.longitude) {
+                const m = L.marker([r.latitude, r.longitude], {icon: makeIcon(r.marker_color, r.request_id === selectedId)})
+                           .addTo(map).bindPopup(`<b>${r.citizen_name}</b><br>${r.phone}`);
+                m.on('click', () => selectRequest(r.request_id));
+                markers[r.request_id] = m;
             }
-            selectedRequestId = null;
-        }
-    }
-
-    // Lọc Bản đồ
-    function filterMap(color, btn) {
-        currentFilter = color;
-        // Reset nút
-        document.querySelectorAll('.chip').forEach(b => {
-            b.classList.remove('act-all', 'act-red', 'act-yellow');
-            b.classList.add('bg-white');
         });
-        btn.classList.remove('bg-white');
-        btn.classList.add(`act-${color}`);
-        
-        closeDetail(); 
-        renderMapMarkers();
     }
 
-    // Mở Modal Điều phối
-    // Mở Modal Điều phối
-    function openAssignFlow() {
-        // Kiểm tra xem đã chọn ca nào trên bản đồ chưa
-        if (!selectedRequestId) {
-            alert("Vui lòng click chọn một ca cứu hộ trên bản đồ trước!");
-            return;
-        }
-        
-        // Lấy thông tin ca đang chọn
-        const req = allRequests.find(r => r.request_id === selectedRequestId);
-        if (!req) return;
-
-        // Đổ tên lên Modal
-        document.getElementById('modal-req-name').textContent = req.citizen_name + " - " + req.address_note;
-        
-        const container = document.getElementById('team-list-container');
-        container.innerHTML = '';
-        
-        // Render danh sách đội
-        if (!allTeams || allTeams.length === 0) {
-            container.innerHTML = '<div class="p-3 text-center text-muted">Không có đội cứu hộ nào! Vui lòng kiểm tra lại Database.</div>';
-        } else {
-            allTeams.forEach(t => {
-                const isBusy = t.status !== 'Available';
-                const badge = isBusy ? '<span class="badge badge-warning">Đang bận</span>' : '<span class="badge badge-success">Sẵn sàng</span>';
-                
-                container.innerHTML += `
-                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="mb-1 font-weight-bold text-primary"><i class="fas fa-truck-pickup mr-2"></i>${esc(t.team_name)}</h6>
-                            <small class="text-muted">Nhân sự: ${t.member_count} | Hoàn thành: ${t.completed_cases}</small>
-                        </div>
-                        <div class="text-right">
-                            <div class="mb-2">${badge}</div>
-                            <button class="btn btn-sm btn-${isBusy ? 'secondary' : 'danger'}" 
-                                    onclick="assignTeam(${req.request_id}, ${t.team_id})" ${isBusy ? 'disabled' : ''}>
-                                Giao nhiệm vụ
-                            </button>
+    function renderTeams() {
+        const list = document.getElementById('team-list'); list.innerHTML = '';
+        allTeams.forEach(t => {
+            const isBusy = t.status === 'Busy';
+            const btnHtml = isBusy 
+                ? `<button class="btn btn-sm btn-secondary" disabled>Đang bận</button>` 
+                : `<button class="btn btn-sm btn-outline-success font-weight-bold" onclick="assignMission(${t.team_id})">Điều động</button>`;
+            
+            list.innerHTML += `
+                <div class="team-item d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="team-avatar">${t.team_name.charAt(0)}</div>
+                        <div style="margin-left:10px;">
+                            <div class="team-name-txt">${t.team_name}</div>
+                            <div class="small text-muted">Đang xử lý: ${t.current_active} ca</div>
                         </div>
                     </div>
-                `;
-            });
-        }
-        
-        // Bật Modal lên
-        $('#dispatchModal').modal('show');
-    }
-
-    // Giao nhiệm vụ (Chuẩn bị nối API)
-    // Giao nhiệm vụ bằng cách gọi API POST
-async function assignTeam(reqId, teamId) {
-    if (!confirm("Bạn chắc chắn muốn điều động Đội này?")) return;
-
-    // 1. Bắt lấy nút bấm một cách an toàn để tránh lỗi sập Javascript
-    let btn = null;
-    let originalText = "Giao nhiệm vụ";
-    
-    // Nếu bắt được sự kiện click
-    if (window.event) {
-        // currentTarget đảm bảo lấy đúng thẻ <button>, dù có click trúng cái icon <i> bên trong
-        btn = window.event.currentTarget; 
-        if (btn) {
-            originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang giao...';
-            btn.disabled = true;
-        }
-    }
-
-    try {
-        // 2. Gọi API
-        const res = await fetch(`${API_BASE}/dispatcher/assign_mission.php`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                request_id: reqId,
-                team_id: teamId
-            })
+                    ${btnHtml}
+                </div>
+            `;
         });
+    }
+
+    function selectRequest(id) {
+        selectedId = id;
+        renderMapAndRequests(); // Render lại để áp style 'selected'
+        const req = allRequests.find(r => r.request_id === id);
         
-        const data = await res.json();
+        if (req.latitude) map.flyTo([req.latitude, req.longitude], 15);
+
+        // Hiện Detail Box
+        document.getElementById('detail-body').innerHTML = `
+            <div class="col-6">
+                <small class="text-muted">Nạn nhân:</small><br><b>${req.citizen_name}</b>
+            </div>
+            <div class="col-6">
+                <small class="text-muted">Điện thoại:</small><br><b>${req.phone}</b>
+            </div>
+            <div class="col-12 mt-2">
+                <small class="text-muted">Địa điểm:</small><br><span class="text-dark">${req.address_note}</span>
+            </div>
+        `;
+        document.getElementById('detail-box').classList.add('show');
+    }
+
+    function closeDetail() {
+        selectedId = null;
+        document.getElementById('detail-box').classList.remove('show');
+        renderMapAndRequests();
+    }
+
+    function openAssignTab() {
+        $('#sideTab a[href="#tab-teams"]').tab('show');
+    }
+
+    function assignMission(teamId) {
+        if (!selectedId) {
+            Swal.fire('Lỗi', 'Vui lòng chọn 1 nạn nhân trên bản đồ trước!', 'warning'); return;
+        }
         
-        if (data.success) {
-            $('#dispatchModal').modal('hide');
-            await loadMapPage(); // Tự động load lại bản đồ
-            alert("✅ " + data.message);
-        } else {
-            alert("❌ Lỗi: " + data.message);
-            // Phục hồi lại nút nếu bị lỗi
-            if (btn) {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
+        Swal.fire({
+            title: 'Xác nhận Điều Động?', text: "Lực lượng sẽ lập tức xuất phát!", icon: 'warning',
+            showCancelButton: true, confirmButtonColor: '#e74a3b', confirmButtonText: 'Phát Lệnh!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`${API_BASE}/dispatcher/assign_mission.php`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ request_id: selectedId, team_id: teamId })
+                }).then(r => r.json()).then(data => {
+                    if(data.success) {
+                        Swal.fire('Thành công', data.message, 'success');
+                        closeDetail();
+                        $('#sideTab a[href="#tab-requests"]').tab('show');
+                        loadAllData();
+                    } else Swal.fire('Lỗi', data.message, 'error');
+                });
             }
-        }
-        
-    } catch (error) {
-        console.error("Lỗi kết nối:", error);
-        alert("❌ Mất kết nối đến máy chủ.");
-        if (btn) {
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-        }
-    }
-}
-
-    // Tải dữ liệu ban đầu
-    async function loadMapPage() {
-        await fetchCoreData(); 
-        renderMapMarkers();    
+        });
     }
 
-    // Khởi chạy
     document.addEventListener('DOMContentLoaded', () => { 
-        initMap(); 
-        loadMapPage(); 
-        setInterval(loadMapPage, 10000); // 10s reload DB
+        loadAllData(); 
+        setInterval(loadAllData, 10000); // Live map update mỗi 10s
     });
 </script>
 </body>

@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 header("Location: ../views/admin/dashboard.php");
             } elseif ($user['role_name'] === 'Dispatcher') {
                 // TV2 & TV3: Điều phối viên vào trang Bản đồ
-                header("Location: ../views/dispatcher/map.php");
+                header("Location: ../views/dispatcher/dashboard.php");
             } elseif ($user['role_name'] === 'RescueTeam') {
                 // TV4: Đội cứu hộ vào trang Nhận nhiệm vụ
                 header("Location: ../views/rescuer/tasks.php");
