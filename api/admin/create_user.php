@@ -65,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header("Location: ../../views/admin/manage_users.php");
         exit;
 
-    } catch (PDOException $e) {
+    } }catch (PDOException $e) {
         $pdo->rollBack();
         if ($e->getCode() == 23000) { 
             $_SESSION['msg'] = "Lỗi: Tên đăng nhập hoặc Số điện thoại đã tồn tại!";

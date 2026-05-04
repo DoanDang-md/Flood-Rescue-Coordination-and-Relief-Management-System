@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tra Cứu Yêu Cầu</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.0/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+
+    <style>
+      body {
+        background-color: #f8f9fc;
+        font-family: Arial, sans-serif;
+      }
+      .box {
+        background: white;
+        margin-top: 40px;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        border-top: 5px solid #36b9cc;
+      }
+      #map {
+        height: 350px;
+        border-radius: 8px;
+        border: 2px solid #ddd;
+        z-index: 1;
+      }
+      #toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #333;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        opacity: 0;
+        transition: 0.3s;
+        z-index: 1050;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="toast"></div>
+
+    <div class="container mb-5">
+      <div class="row justify-content-center">
+        <div class="col-md-8 box">
+          <h2 class="text-center text-info font-weight-bold mb-4">
+            <i class="fas fa-search-location"></i> TRA CỨU YÊU CẦU CỨU HỘ
+          </h2>
+
+          <div class="input-group mb-4">
+            <input
+              type="tel"
+              id="phone"
+              class="form-control form-control-lg"
+              placeholder="Nhập số điện thoại đã gửi yêu cầu..."
+            />
+            <div class="input-group-append">
+              <button class="btn btn-info px-4" id="btnSearch">
+                <i class="fas fa-search"></i> Tra cứu
+              </button>
+            </div>
+          </div>
+
+          <div
+            id="loading"
+            class="text-center mb-3 text-info font-weight-bold"
+            style="display: none"
+          >
+            <i class="fas fa-spinner fa-spin fa-2x"></i>
+          </div>
+
+          <ul id="list" class="list-group mb-4 shadow-sm"></ul>
+
+          <h5 class="font-weight-bold text-gray-800">
+            <i class="fas fa-map text-danger"></i> Vị trí hiển thị trên radar:
+          </h5>
+          <div id="map"></div>
+
+          <div class="text-center mt-4">
+            <a
+              href="create_request.php"
+              class="text-danger font-weight-bold mr-3"
+              ><i class="fas fa-plus"></i> Gửi yêu cầu mới</a
+            >
+            <a href="../../index.html" class="text-muted"
+              ><i class="fas fa-home"></i> Về trang chủ</a
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+      // Mặc định bản đồ ở tâm Việt Nam
+      let map = L.map("map").setView([16.4637, 107.5905], 5);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(
+        map,
+      );
+      let markers = [];
+
+      function showToast(msg, success = true) {
+        let toast = document.getElementById("toast");
+        toast.innerHTML = success
+          ? `<i class="fas fa-check"></i> ${msg}`
+          : `<i class="fas fa-times"></i> ${msg}`;
+        toast.style.background = success ? "#1cc88a" : "#e74a3b";
+        toast.style.opacity = 1;
+        setTimeout(() => (toast.style.opacity = 0), 3000);
+      }
+
+      document
+        .getElementById("btnSearch")
+        .addEventListener("click", function () {
+          let phone = document.getElementById("phone").value.trim();
+          if (!phone) return showToast("Vui lòng nhập số điện thoại!", false);
+
+          document.getElementById("loading").style.display = "block";
+
+          fetch(`../../api/citizen/get_request_by_phone.php?phone=${phone}`)
+            .then((res) => res.json())
+            .then((data) => {
+              let list = document.getElementById("list");
+              list.innerHTML = "";
+              markers.forEach((m) => map.removeLayer(m));
+              markers = [];
+
+              if (data.error) return showToast(data.error, false);
+              if (data.length === 0) {
+                list.innerHTML =
+                  "<li class='list-group-item text-center'>Không tìm thấy yêu cầu nào!</li>";
+                return showToast("Không có dữ liệu!", false);
+              }
+
+              data.forEach((item) => {
+                let badgeClass =
+                  item.status === "Hoàn thành"
+                    ? "badge-success"
+                    : item.status === "Mới"
+                      ? "badge-danger"
+                      : "badge-warning text-dark";
+
+                list.innerHTML += `
+                  <li class="list-group-item">
+                      <div class="d-flex justify-content-between">
+                          <strong class="text-primary">${item.citizen_name}</strong>
+                          <span class="badge ${badgeClass} p-2">${item.status}</span>
+                      </div>
+                      <div class="small text-muted mt-2"><i class="fas fa-map-pin"></i> ${item.address_note}</div>
+                      <div class="small text-muted"><i class="far fa-clock"></i> ${item.created_at}</div>
+                  </li>
+              `;
+
+                if (item.latitude && item.longitude) {
+                  let marker = L.marker([item.latitude, item.longitude])
+                    .addTo(map)
+                    .bindPopup(
+                      `<b>${item.citizen_name}</b><br>Trạng thái: ${item.status}`,
+                    );
+                  markers.push(marker);
+                }
+              });
+
+              if (markers.length > 0) {
+                // Tự động zoom đến vị trí của yêu cầu mới nhất
+                map.setView([data[0].latitude, data[0].longitude], 14);
+              }
+              showToast("Tra cứu thành công!");
+            })
+            .catch(() => showToast("Lỗi kết nối máy chủ!", false))
+            .finally(
+              () => (document.getElementById("loading").style.display = "none"),
+            );
+        });
+    </script>
+  </body>
+</html>

@@ -7,8 +7,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $address_note = trim($_POST['address_note']);
     $severity = $_POST['severity'];
     $description = trim($_POST['description']);
-    $latitude = $_POST['latitude'];
-    $longitude = $_POST['longitude'];
+    $latitude = !empty($_POST['latitude']) ? $_POST['latitude'] : null;
+$longitude = !empty($_POST['longitude']) ? $_POST['longitude'] : null;
+if (empty($phone) || empty($address_note)) {
+    die("<script>alert('Lỗi: Bạn phải nhập Số điện thoại và Địa chỉ/Ghi chú vị trí!'); window.history.back();</script>");
+}
 
     try {
         $stmt = $pdo->prepare("
@@ -22,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Gửi thành công -> Điều hướng sang trang Tra cứu
         echo "<script>
                 alert('GỬI YÊU CẦU THÀNH CÔNG! Đội điều phối đã nhận được tín hiệu. Bạn sẽ được chuyển sang trang theo dõi trạng thái.');
-                window.location.href = '../../views/citizen/track_request.html';
+                window.location.href = '../../views/citizen/track_request.php';
               </script>";
         exit;
 
