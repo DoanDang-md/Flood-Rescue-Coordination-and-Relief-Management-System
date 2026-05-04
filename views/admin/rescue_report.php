@@ -1,6 +1,5 @@
 <?php
 session_start();
-// Khóa cửa: Chỉ Admin mới được vào trang này
 if (!isset($_SESSION['role_name']) || $_SESSION['role_name'] !== 'Admin') {
     header("Location: ../../index.html"); 
     exit;

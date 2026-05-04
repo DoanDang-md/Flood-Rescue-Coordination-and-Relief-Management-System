@@ -8,9 +8,12 @@ require_once '../../api/config.php';
 try {
     // Thêm u.role_id vào câu lệnh SELECT
     $stmtUsers = $pdo->query("
-        SELECT u.user_id, u.username, u.full_name, u.phone, u.role_id, r.role_name
+        SELECT 
+            u.user_id, u.username, u.full_name, u.phone, u.role_id, r.role_name,
+            rt.team_id, rt.team_name, rt.member_count, rt.equipment
         FROM users u
         JOIN roles r ON u.role_id = r.role_id
+        LEFT JOIN rescue_teams rt ON u.user_id = rt.user_id
         ORDER BY u.user_id DESC
     ");
     $users = $stmtUsers->fetchAll();
@@ -86,15 +89,18 @@ try {
                                                 ?>
                                             </td>
                                             <td class="text-center align-middle">
-                                                <button class="btn btn-info btn-sm btn-edit" 
-                                                    data-id="<?php echo $u['user_id']; ?>"
-                                                    data-username="<?php echo htmlspecialchars($u['username']); ?>"
-                                                    data-fullname="<?php echo htmlspecialchars($u['full_name']); ?>"
-                                                    data-phone="<?php echo htmlspecialchars($u['phone']); ?>"
-                                                    data-role="<?php echo $u['role_id']; ?>"
-                                                    data-toggle="modal" data-target="#editUserModal" title="Sửa">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>
+                                               <button class="btn btn-info btn-sm btn-edit" 
+    data-id="<?php echo $u['user_id']; ?>"
+    data-username="<?php echo htmlspecialchars($u['username']); ?>"
+    data-fullname="<?php echo htmlspecialchars($u['full_name']); ?>"
+    data-phone="<?php echo htmlspecialchars($u['phone']); ?>"
+    data-role="<?php echo $u['role_id']; ?>"
+    data-teamname="<?php echo htmlspecialchars($u['team_name'] ?? ''); ?>"
+    data-members="<?php echo htmlspecialchars($u['member_count'] ?? ''); ?>"
+    data-equipment="<?php echo htmlspecialchars($u['equipment'] ?? ''); ?>"
+    data-toggle="modal" data-target="#editUserModal" title="Sửa">
+    <i class="fas fa-edit"></i>
+</button>
                                                 
                                                 <button class="btn btn-danger btn-sm btn-delete" 
                                                     data-id="<?php echo $u['user_id']; ?>"
@@ -143,11 +149,26 @@ try {
                         </div>
                         <div class="form-group">
                             <label>Quyền</label>
-                            <select class="form-control" name="role_id" required>
+                            <select class="form-control" name="role_id" id="roleSelect" required>
                                 <?php foreach ($roles as $r): ?>
                                     <option value="<?php echo $r['role_id']; ?>"><?php echo $r['role_name']; ?></option>
                                 <?php endforeach; ?>
                             </select>
+                            <div id="rescueTeamFields" style="display: none; border-top: 1px dashed #ccc; padding-top: 15px; margin-top: 15px;">
+    <h6 class="font-weight-bold text-success mb-3"><i class="fas fa-life-ring mr-1"></i>Hồ sơ Đội Cứu Hộ</h6>
+    <div class="form-group">
+        <label>Tên Đội Cứu Hộ <span class="text-danger">*</span></label>
+        <input type="text" class="form-control" name="team_name" id="input_team_name" placeholder="VD: Đội Canô Phản Ứng Nhanh">
+    </div>
+    <div class="form-group">
+        <label>Số lượng thành viên</label>
+        <input type="number" class="form-control" name="member_count" value="1" min="1">
+    </div>
+    <div class="form-group">
+        <label>Trang thiết bị mang theo</label>
+        <textarea class="form-control" name="equipment" rows="2" placeholder="VD: 2 áo phao, 1 xuồng cao su, túi y tế..."></textarea>
+    </div>
+</div>
                         </div>
                     </div>
                     <div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button><button type="submit" class="btn btn-primary">Tạo mới</button></div>
@@ -191,6 +212,21 @@ try {
                                     <option value="<?php echo $r['role_id']; ?>"><?php echo $r['role_name']; ?></option>
                                 <?php endforeach; ?>
                             </select>
+                            <div id="editRescueTeamFields" style="display: none; border-top: 1px dashed #ccc; padding-top: 15px; margin-top: 15px;">
+    <h6 class="font-weight-bold text-info mb-3"><i class="fas fa-life-ring mr-1"></i>Hồ sơ Đội Cứu Hộ</h6>
+    <div class="form-group">
+        <label>Tên Đội Cứu Hộ <span class="text-danger">*</span></label>
+        <input type="text" class="form-control" name="team_name" id="edit_team_name" placeholder="VD: Đội Canô Phản Ứng Nhanh">
+    </div>
+    <div class="form-group">
+        <label>Số lượng thành viên</label>
+        <input type="number" class="form-control" name="member_count" id="edit_member_count" min="1">
+    </div>
+    <div class="form-group">
+        <label>Trang thiết bị mang theo</label>
+        <textarea class="form-control" name="equipment" id="edit_equipment" rows="2"></textarea>
+    </div>
+</div>
                         </div>
                     </div>
                     <div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button><button type="submit" class="btn btn-info">Cập nhật</button></div>
@@ -223,18 +259,55 @@ try {
     <script>
         $(document).ready(function() {
             $('.btn-edit').on('click', function() {
-                $('#edit_id').val($(this).data('id'));
-                $('#edit_username').val($(this).data('username'));
-                $('#edit_fullname').val($(this).data('fullname'));
-                $('#edit_phone').val($(this).data('phone'));
-                $('#edit_role').val($(this).data('role'));
-            });
+        $('#edit_id').val($(this).data('id'));
+        $('#edit_username').val($(this).data('username'));
+        $('#edit_fullname').val($(this).data('fullname'));
+        $('#edit_phone').val($(this).data('phone'));
+        $('#edit_role').val($(this).data('role'));
+        
+        // Đổ dữ liệu riêng của Đội cứu hộ (nếu có)
+        $('#edit_team_name').val($(this).data('teamname'));
+        $('#edit_member_count').val($(this).data('members'));
+        $('#edit_equipment').val($(this).data('equipment'));
+
+        // Kích hoạt hàm kiểm tra ẩn/hiện Form dựa trên role đang chọn
+        $('#edit_role').trigger('change');
+    });
+
+    // --- Logic điều khiển ẩn/hiện Form Đội Cứu Hộ khi đổi Role trong Form SỬA ---
+    $('#edit_role').on('change', function() {
+        var selectedRoleText = $(this).find("option:selected").text().trim().toLowerCase();
+        if (selectedRoleText.includes('cứu hộ') || selectedRoleText.includes('rescue')) {
+            $('#editRescueTeamFields').slideDown();
+            $('#edit_team_name').attr('required', true);
+        } else {
+            $('#editRescueTeamFields').slideUp();
+            $('#edit_team_name').attr('required', false);
+        }
+    });
 
             $('.btn-delete').on('click', function() {
                 $('#del_id').val($(this).data('id'));
                 $('#del_name').text($(this).data('fullname'));
             });
         });
+        $('#roleSelect').on('change', function() {
+    var selectedRoleText = $(this).find("option:selected").text().trim().toLowerCase();
+    
+    // Nếu tên quyền có chứa chữ 'cứu hộ' (hoặc 'rescue')
+    if (selectedRoleText.includes('cứu hộ') || selectedRoleText.includes('rescue')) {
+        $('#rescueTeamFields').slideDown(); // Hiện form chi tiết
+        $('#input_team_name').attr('required', true); // Bắt buộc nhập tên đội
+    } else {
+        $('#rescueTeamFields').slideUp(); // Ẩn form chi tiết
+        $('#input_team_name').attr('required', false); // Bỏ bắt buộc
+    }
+});
+
+// Kích hoạt sự kiện kiểm tra một lần ngay khi mở Modal thêm mới
+$('#addUserModal').on('show.bs.modal', function () {
+    $('#roleSelect').trigger('change');
+});
     </script>
 </body>
 </html>

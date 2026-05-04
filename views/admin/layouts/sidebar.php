@@ -7,14 +7,7 @@
     <li class="nav-item active">
         <a class="nav-link" href="dashboard.php"><i class="fas fa-fw fa-tachometer-alt"></i> <span>Tổng quan</span></a>
     </li>
-    <hr class="sidebar-divider">
-    <div class="sidebar-heading">Quản lý thực địa</div>
-    <li class="nav-item">
-        <a class="nav-link" href="rescue_requests.php"><i class="fas fa-fw fa-exclamation-circle"></i> <span>Yêu cầu cứu hộ</span></a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" href="rescue_teams.php"><i class="fas fa-fw fa-users"></i> <span>Đội cứu hộ</span></a>
-    </li>
+    
     <hr class="sidebar-divider">
     <div class="sidebar-heading">Hệ thống</div>
     <li class="nav-item">

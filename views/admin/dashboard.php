@@ -143,14 +143,23 @@ if (!isset($_SESSION['role_name']) || $_SESSION['role_name'] !== 'Admin') {
                 }
             });
 
-            // 3. Đổ dữ liệu từ Backend
             fetch('../../api/admin/get_dashboard_data.php')
                 .then(response => response.json())
                 .then(data => {
                     if(data.status === 'success') {
+                        // Cập nhật các con số tổng quan
                         document.getElementById('ui-new-requests').innerText = data.stats.new_requests;
                         document.getElementById('ui-active-teams').innerText = data.stats.active_teams;
                         document.getElementById('ui-completed-cases').innerText = data.stats.completed_cases;
+
+                        // Cập nhật Biểu đồ tròn (Pie Chart)
+                        statusPieChart.data.datasets[0].data = data.charts.pie;
+                        statusPieChart.update();
+
+                        // Cập nhật Biểu đồ cột (Bar Chart)
+                        rescueBarChart.data.labels = data.charts.bar.labels;
+                        rescueBarChart.data.datasets[0].data = data.charts.bar.data;
+                        rescueBarChart.update();
                     }
                 })
                 .catch(error => console.error('Lỗi khi gọi API:', error));
