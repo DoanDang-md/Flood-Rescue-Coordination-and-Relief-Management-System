@@ -4,7 +4,7 @@ require_once '../config.php';
 
 // Kiểm tra quyền Admin
 if (!isset($_SESSION['role_name']) || $_SESSION['role_name'] !== 'Admin') {
-    header("Location: ../../index.html");
+    header("Location: ../../web_portal.php");
     exit;
 }
 

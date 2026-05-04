@@ -1,6 +1,6 @@
 <?php
 session_start();
-if (!isset($_SESSION['role_name']) || $_SESSION['role_name'] !== 'Dispatcher') { header("Location: ../../index.html"); exit; }
+if (!isset($_SESSION['role_name']) || $_SESSION['role_name'] !== 'Dispatcher') { header("Location: ../../web_portal.php"); exit; }
 ?>
 <!DOCTYPE html>
 <html lang="vi">

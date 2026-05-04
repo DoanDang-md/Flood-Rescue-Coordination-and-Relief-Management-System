@@ -95,7 +95,7 @@
               class="text-danger font-weight-bold mr-3"
               ><i class="fas fa-plus"></i> Gửi yêu cầu mới</a
             >
-            <a href="../../index.html" class="text-muted"
+            <a href="../../web_portal.php" class="text-muted"
               ><i class="fas fa-home"></i> Về trang chủ</a
             >
           </div>

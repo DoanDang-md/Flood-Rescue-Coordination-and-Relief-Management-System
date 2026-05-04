@@ -33,7 +33,7 @@ if (empty($phone) || empty($address_note)) {
         die("Lỗi hệ thống: " . $e->getMessage());
     }
 } else {
-    header("Location: ../index.html");
+    header("Location: ../web_portal.php");
     exit;
 }
 ?>

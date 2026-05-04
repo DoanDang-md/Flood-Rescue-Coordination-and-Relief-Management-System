@@ -1,0 +1,325 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #f0f4f8;
+  font-family:
+    "Segoe UI",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  padding-bottom: 30px;
+  min-height: 100vh;
+}
+
+/* Header */
+.app-header {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  color: white;
+  padding: 18px 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.app-header h3 {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.3rem;
+}
+
+.app-header small {
+  opacity: 0.85;
+  font-size: 0.8rem;
+}
+
+.logout-btn {
+  color: white !important;
+  opacity: 0.85;
+  transition: opacity 0.2s;
+  text-decoration: none;
+  font-size: 1.2rem;
+}
+
+.logout-btn:hover {
+  opacity: 1;
+  color: white;
+}
+
+/* Team Info Bar */
+.team-info {
+  background: white;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.team-badge {
+  background: #2a5298;
+  color: white;
+  padding: 6px 14px;
+  border-radius: 30px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.refresh-btn {
+  color: #2a5298;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 20px;
+  background: #f0f4f8;
+  border: none;
+  font-size: 0.9rem;
+}
+
+.refresh-btn i {
+  margin-right: 5px;
+}
+
+/* Mission Card */
+.mission-card {
+  background: white;
+  border-radius: 20px;
+  padding: 18px;
+  margin: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  border-left: 8px solid #ffc107;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.mission-card.rescuing {
+  border-left-color: #28a745;
+  background: linear-gradient(to right, #f0fff4 0%, white 100%);
+}
+
+.mission-card.critical {
+  border-left-color: #dc3545;
+  background: linear-gradient(to right, #fff5f5 0%, white 100%);
+}
+
+/* Status Badge */
+.status-badge {
+  display: inline-block;
+  padding: 5px 14px;
+  border-radius: 30px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge.moving {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-badge.rescuing {
+  background: #d4edda;
+  color: #155724;
+}
+
+/* Severity Tag */
+.severity-tag {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+}
+
+.severity-critical {
+  background: #dc3545;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 30px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.severity-high {
+  background: #fd7e14;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 30px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+/* Citizen Info */
+.citizen-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #1e3c72;
+  padding-right: 70px;
+}
+
+.info-row {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  color: #555;
+  font-size: 0.95rem;
+}
+
+.info-row i {
+  width: 24px;
+  color: #2a5298;
+  margin-top: 3px;
+}
+
+.info-row span {
+  flex: 1;
+}
+
+/* Map Preview */
+.map-preview {
+  height: 130px;
+  border-radius: 12px;
+  margin: 12px 0;
+  overflow: hidden;
+  background: #e9ecef;
+  border: 1px solid #dee2e6;
+}
+
+.map-preview iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* Action Buttons */
+.btn-action {
+  width: 100%;
+  padding: 14px;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 14px;
+  margin-top: 8px;
+  border: none;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-action:active {
+  transform: scale(0.98);
+}
+
+.btn-moving {
+  background: #ffc107;
+  color: #000;
+}
+
+.btn-rescuing {
+  background: #28a745;
+  color: white;
+}
+
+.btn-complete {
+  background: #007bff;
+  color: white;
+}
+
+.btn-maps {
+  width: 100%;
+  padding: 10px;
+  font-size: 0.9rem;
+  border-radius: 10px;
+  margin-top: 8px;
+  background: white;
+  border: 1px solid #2a5298;
+  color: #2a5298;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-decoration: none;
+}
+
+.btn-maps:hover {
+  background: #f0f4f8;
+  color: #1e3c72;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6c757d;
+}
+
+.empty-state i {
+  font-size: 5rem;
+  margin-bottom: 20px;
+  opacity: 0.5;
+  color: #2a5298;
+}
+
+.empty-state h4 {
+  margin-bottom: 10px;
+  color: #333;
+}
+
+/* Loading */
+.loading-container {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+/* Error Alert */
+.error-alert {
+  margin: 16px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+/* Auto Refresh Indicator */
+.refresh-indicator {
+  text-align: center;
+  padding: 16px;
+  color: #6c757d;
+  font-size: 0.85rem;
+  border-top: 1px solid #e0e0e0;
+  margin-top: 10px;
+}
+
+/* People count highlight */
+.people-count {
+  background: #e74c3c;
+  color: white;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: inline-block;
+  margin-left: 8px;
+}
+
+/* Animation */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.pulse {
+  animation: pulse 1.5s infinite;
+}

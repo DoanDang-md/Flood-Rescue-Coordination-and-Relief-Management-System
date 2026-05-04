@@ -9,6 +9,6 @@ session_unset();
 session_destroy();
 
 // 4. Điều hướng người dùng về lại trang chủ (màn hình đăng nhập ngoài cùng)
-header("Location: ../index.html");
+header("Location: ../web_portal.php");
 exit;
 ?>

@@ -162,7 +162,7 @@
               class="text-primary font-weight-bold mr-3"
               ><i class="fas fa-search"></i> Tra cứu yêu cầu đã gửi</a
             >
-            <a href="../../index.html" class="text-muted"
+            <a href="../../web_portal.php" class="text-muted"
               ><i class="fas fa-home"></i> Trang chủ</a
             >
           </div>

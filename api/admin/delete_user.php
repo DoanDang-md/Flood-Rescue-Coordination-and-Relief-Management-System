@@ -3,7 +3,7 @@ session_start();
 require_once '../config.php';
 
 if (!isset($_SESSION['role_name']) || $_SESSION['role_name'] !== 'Admin') {
-    header("Location: ../../index.html"); exit;
+    header("Location: ../../web_portal.php"); exit;
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

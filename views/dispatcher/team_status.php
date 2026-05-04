@@ -2,7 +2,7 @@
 session_start();
 // Cho phép cả Admin và Dispatcher xem trang này
 if (!isset($_SESSION['role_name']) || !in_array($_SESSION['role_name'], ['Admin', 'Dispatcher'])) {
-    header("Location: ../../index.html"); exit;
+    header("Location: ../../web_portal.php"); exit;
 }
 ?>
 <!DOCTYPE html>

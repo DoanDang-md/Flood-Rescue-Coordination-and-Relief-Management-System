@@ -47,9 +47,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 header("Location: ../views/dispatcher/dashboard.php");
             } elseif ($user['role_name'] === 'RescueTeam') {
                 // TV4: Đội cứu hộ vào trang Nhận nhiệm vụ
-                header("Location: ../views/rescuer/tasks.php");
+                header("Location: ../views/rescuer/dashboard.php");
             } else {
-                echo "<script>alert('Quyền truy cập không hợp lệ!'); window.location.href = '../index.html';</script>";
+                echo "<script>alert('Quyền truy cập không hợp lệ!'); window.location.href = '../web_portal.php';</script>";
             }
             exit; // Dừng mã nguồn lại sau khi điều hướng
 
@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Sai tên đăng nhập hoặc mật khẩu
             echo "<script>
                     alert('Tên đăng nhập hoặc mật khẩu không chính xác!');
-                    window.location.href = '../index.html';
+                    window.location.href = '../web_portal.php';
                   </script>";
             exit;
         }
@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 } else {
     // Nếu ai đó gõ trực tiếp url /api/login.php lên trình duyệt, đá họ về trang chủ
-    header("Location: ../index.html");
+    header("Location: ../web_portal.php");
     exit;
 }
 ?>
